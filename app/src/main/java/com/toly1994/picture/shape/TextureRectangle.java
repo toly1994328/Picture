@@ -5,17 +5,16 @@ import android.opengl.GLES20;
 
 import com.toly1994.picture.utils.GLUtil;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.nio.ShortBuffer;
 
 /**
  * 作者：张风捷特烈<br/>
  * 时间：2019/1/9 0009:20:09<br/>
  * 邮箱：1981462002@qq.com<br/>
- * 说明：三角形
+ * 说明：贴图测试
  */
-public class Triangle {
+public class TextureRectangle {
     private static final String TAG = "Triangle";
     private Context mContext;
 
@@ -25,35 +24,39 @@ public class Triangle {
     private int muMVPMatrixHandle;//顶点变换矩阵句柄
 
     private FloatBuffer vertexBuffer;//顶点缓冲
-    private final int vertexCount = sCoo.length / COORDS_PER_VERTEX;//顶点个数
     private final int vertexStride = COORDS_PER_VERTEX * 4; // 3*4=12
     static final int COORDS_PER_VERTEX = 3;//数组中每个顶点的坐标数
 
+    static final int c = 1;//数组中每个顶点的坐标数
+
     static float sCoo[] = {   //以逆时针顺序
-            0.0f, 0.0f, 0.0f, // 顶部
-            -1.0f, -1.0f, 0.0f, // 左下
-            1.0f, -1.0f, 0.0f  // 右下
+            -c, c, 0.0f, // p0
+            -c, -c, 0.0f, // p1
+            c, -c, 0.0f, // p2
+            c, c, 0.0f, //p3
     };
 
-
-    private FloatBuffer mColorBuffer;//颜色缓冲
-    static final int COLOR_PER_VERTEX = 4;//数组中每个顶点的坐标数
-    private final int vertexColorStride = COLOR_PER_VERTEX * 4; // 4*4=16
-
-    float colors[] = new float[]{
-            1f, 1f, 0.0f, 1.0f,//黄
-            0.05882353f, 0.09411765f, 0.9372549f, 1.0f,//蓝
-            0.19607843f, 1.0f, 0.02745098f, 1.0f//绿
+    private final float[] textureCoo = {
+            0.0f,0.0f,
+            0.0f,1.0f,
+            1.0f,0.0f,
+            1.0f,1.0f,
     };
 
-    // 颜色，rgba  0.5176471,0.77254903,0.9411765,1.0
-    float color[] = {0.5176471f, 0.77254903f, 0.9411765f, 1.0f};
+    static final int TEXTURE_PER_VERTEX = 2;//数组中每个顶点的坐标数
+    private final int vertexTextureStride = TEXTURE_PER_VERTEX * 4; // 4*4=16
 
+    private ShortBuffer idxBuffer;
+    //索引数组
+    private short[] idx = {
+            1, 2, 3,
+            0, 1, 3,
+    };
+    private FloatBuffer mTextureCooBuffer;
 
-    public Triangle(Context context) {
+    public TextureRectangle(Context context) {
         mContext = context;
         //初始化顶点字节缓冲区
-
         bufferData();//缓冲顶点数据
         initProgram();//初始化OpenGL ES 程序
     }
@@ -62,20 +65,10 @@ public class Triangle {
      * 缓冲数据
      */
     private void bufferData() {
-        //分配地址空间，一个float是4个字节，所以乘4
-        ByteBuffer bb = ByteBuffer.allocateDirect(sCoo.length * 4);//每个浮点数:坐标个数* 4字节
-        bb.order(ByteOrder.nativeOrder());//使用本机硬件设备的字节顺序
-        vertexBuffer = bb.asFloatBuffer();// 从字节缓冲区创建浮点缓冲区
-        vertexBuffer.put(sCoo);// 将坐标添加到FloatBuffer
-        vertexBuffer.position(0);//设置缓冲区以读取第一个坐标
-
-        ByteBuffer cbb = ByteBuffer.allocateDirect(colors.length * 4);
-        cbb.order(ByteOrder.nativeOrder());
-        mColorBuffer = cbb.asFloatBuffer();
-        mColorBuffer.put(colors);
-        mColorBuffer.position(0);
+        vertexBuffer = GLUtil.getFloatBuffer(sCoo);
+        mTextureCooBuffer = GLUtil.getFloatBuffer(textureCoo);
+        idxBuffer = GLUtil.getShortBuffer(idx);
     }
-
 
     /**
      * 初始化OpenGL ES 程序
@@ -83,10 +76,10 @@ public class Triangle {
     private void initProgram() {
         ////顶点着色
         int vertexShader = GLUtil.loadShaderAssets(mContext,
-                GLES20.GL_VERTEX_SHADER, "tri.vert");
+                GLES20.GL_VERTEX_SHADER, "rect_texture.vert");
         //片元着色
         int fragmentShader = GLUtil.loadShaderAssets(mContext,
-                GLES20.GL_FRAGMENT_SHADER, "tri.frag");
+                GLES20.GL_FRAGMENT_SHADER, "rect_texture.frag");
 
         mProgram = GLES20.glCreateProgram();//创建空的OpenGL ES 程序
         GLES20.glAttachShader(mProgram, vertexShader);//加入顶点着色器
@@ -96,17 +89,15 @@ public class Triangle {
         //获取顶点着色器的vPosition成员的句柄
         mPositionHandle = GLES20.glGetAttribLocation(mProgram, "vPosition");
         //获取片元着色器的vColor成员的句柄
-        mColorHandle = GLES20.glGetAttribLocation(mProgram, "aColor");
+        mColorHandle = GLES20.glGetAttribLocation(mProgram, "vCoordinate");
         //获取程序中总变换矩阵uMVPMatrix成员的句柄
         muMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");
     }
 
 
-    public void draw(float[] mvpMatrix) {
+    public void draw(float[] mvpMatrix, int texId ) {
         // 将程序添加到OpenGL ES环境中
         GLES20.glUseProgram(mProgram);
-        //对顶点进行矩阵变换
-
         //启用三角形顶点的句柄
         GLES20.glEnableVertexAttribArray(mPositionHandle);
         //启用三角形顶点颜色的句柄
@@ -127,18 +118,17 @@ public class Triangle {
         //准备三角顶点颜色数据
         GLES20.glVertexAttribPointer(
                 mColorHandle,
-                COLOR_PER_VERTEX,
+                TEXTURE_PER_VERTEX,
                 GLES20.GL_FLOAT,
                 false,
-                vertexColorStride,
-                mColorBuffer);
+                vertexTextureStride,
+                mTextureCooBuffer);
+        //绑定纹理
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texId);
 
-//        //为三角形设置颜色
-//        GLES20.glUniform4fv(mColorHandle, 1, color, 0);
-
-        //绘制三角形
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, vertexCount);
-
+        //绘制
+        GLES20.glDrawElements(GLES20.GL_TRIANGLES, idx.length, GLES20.GL_UNSIGNED_SHORT, idxBuffer);
         //禁用顶点数组:
         //禁用index指定的通用顶点属性数组。
         // 默认情况下，禁用所有客户端功能，包括所有通用顶点属性数组。

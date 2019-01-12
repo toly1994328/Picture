@@ -10,7 +10,7 @@ import org.junit.Test;
 public class ExampleUnitTest {
     @Test
     public void addition_isCorrect() {
-        rgba2float(50,255,7, 255);
+        rgba2float(134,14,234, 255);
     }
 
     @Test

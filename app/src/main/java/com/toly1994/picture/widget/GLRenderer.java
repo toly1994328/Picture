@@ -1,13 +1,17 @@
 package com.toly1994.picture.widget;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
-import android.util.Log;
 
-import com.toly1994.picture.shape.Triangle;
-import com.toly1994.picture.utils.L;
+import com.toly1994.picture.R;
+import com.toly1994.picture.shape.Cube;
+import com.toly1994.picture.shape.Rectangle;
+import com.toly1994.picture.shape.TextureRectangle;
+import com.toly1994.picture.utils.GLUtil;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -31,20 +35,29 @@ public class GLRenderer implements GLSurfaceView.Renderer {
 
 
     private Context mContext;
+    private Bitmap mBitmap;
 
     public GLRenderer(Context context) {
         mContext = context;
     }
 
-    Triangle mTriangle;
+    //    Triangle mTriangle;
+    Rectangle mRectangle;
+    TextureRectangle mTextureRectangle;
+    Cube mCube;
 
     private int currDeg = 0;
 
+    private int textureId;
+
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        GLES20.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);//rgba
-        mTriangle = new Triangle(mContext);
-
+        GLES20.glClearColor(0.84313726f,0.91764706f,0.9372549f,1.0f);//rgba
+//        mTriangle= new Rectangle(mContext);
+//        mRectangle = new Rectangle(mContext);
+        mCube = new Cube(mContext);
+        mTextureRectangle = new TextureRectangle(mContext);
+        textureId = GLUtil.loadTexture(mContext, R.mipmap.mian_a);//初始化纹理
     }
 
     @Override
@@ -54,14 +67,13 @@ public class GLRenderer implements GLSurfaceView.Renderer {
         //透视投影矩阵--截锥
         Matrix.frustumM(mProjectionMatrix, 0,
                 -ratio, ratio, -1, 1,
-                3, 7);
+                3, 9);
 
         // 设置相机位置(视图矩阵)
         Matrix.setLookAtM(mViewMatrix, 0,
-                0, 0, -3,
+                2f, 2f, -6.0f,
                 0f, 0f, 0f,
                 0f, 1.0f, 0.0f);
-
 
     }
 
@@ -77,9 +89,10 @@ public class GLRenderer implements GLSurfaceView.Renderer {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
         //初始化变换矩阵
-        Matrix.setRotateM(mOpMatrix, 0, currDeg, 0, 0, -1);
-        //设置沿Z轴位移
-        Matrix.translateM(mOpMatrix, 0, 0, 0, currDeg/90.f);
+        Matrix.setRotateM(mOpMatrix, 0, currDeg, 0, 1, 0);
+//        Matrix.setRotateM(mOpMatrix, 0, currDeg, 0, 1, 0);
+        //设置沿x轴位移
+//        Matrix.translateM(mOpMatrix, 0, currDeg/360.f, 0,0);
         Matrix.multiplyMM(mMVPMatrix, 0,
                 mViewMatrix, 0,
                 mOpMatrix, 0);
@@ -88,11 +101,14 @@ public class GLRenderer implements GLSurfaceView.Renderer {
                 mProjectionMatrix, 0,
                 mMVPMatrix, 0);
 
-        mTriangle.draw(mMVPMatrix);
-//        currDeg++;
-//        if (currDeg == 360) {
-//            currDeg = 0;
-//        }
+//        mTextureRectangle.draw(mMVPMatrix,textureId);
+        mCube.draw(mMVPMatrix);
+
+        currDeg++;
+        if (currDeg == 360) {
+            currDeg = 0;
+        }
+
         //打开深度检测
 //        GLES20.glEnable(GLES20.GL_DEPTH_TEST);
     }

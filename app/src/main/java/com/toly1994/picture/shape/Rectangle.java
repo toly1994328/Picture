@@ -5,17 +5,16 @@ import android.opengl.GLES20;
 
 import com.toly1994.picture.utils.GLUtil;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.nio.ShortBuffer;
 
 /**
  * 作者：张风捷特烈<br/>
  * 时间：2019/1/9 0009:20:09<br/>
  * 邮箱：1981462002@qq.com<br/>
- * 说明：三角形
+ * 说明：矩形
  */
-public class Triangle {
+public class Rectangle {
     private static final String TAG = "Triangle";
     private Context mContext;
 
@@ -30,9 +29,12 @@ public class Triangle {
     static final int COORDS_PER_VERTEX = 3;//数组中每个顶点的坐标数
 
     static float sCoo[] = {   //以逆时针顺序
-            0.0f, 0.0f, 0.0f, // 顶部
-            -1.0f, -1.0f, 0.0f, // 左下
-            1.0f, -1.0f, 0.0f  // 右下
+            -0.5f, 0.5f, 0.0f, // p0
+            -1.0f, 0.0f, 0.0f, // p1
+            -0.5f, -0.5f, 0.0f, // p2
+            0.5f, -0.5f, 0.0f, //p3
+            1.0f, 0.0f, 0.0f, //p4
+            0.5f, 0.5f, 0.0f, //p5
     };
 
 
@@ -41,19 +43,28 @@ public class Triangle {
     private final int vertexColorStride = COLOR_PER_VERTEX * 4; // 4*4=16
 
     float colors[] = new float[]{
-            1f, 1f, 0.0f, 1.0f,//黄
-            0.05882353f, 0.09411765f, 0.9372549f, 1.0f,//蓝
-            0.19607843f, 1.0f, 0.02745098f, 1.0f//绿
+            1f, 1f, 0.0f, 1.0f,//黄--3
+            0.05882353f, 0.09411765f, 0.9372549f, 1.0f,//蓝--4
+            0.19607843f, 1.0f, 0.02745098f, 1.0f,//绿--1
+            1.0f, 0.0f, 1.0f, 1.0f,//紫色--2
+            1.0f, 1.0f, 0.0f, 1.0f,//黄色--2
+            0.5254902f,0.05490196f,0.91764706f,1.0f//黄色--2
     };
-
     // 颜色，rgba  0.5176471,0.77254903,0.9411765,1.0
     float color[] = {0.5176471f, 0.77254903f, 0.9411765f, 1.0f};
 
+    private ShortBuffer idxBuffer;
+    //索引数组
+    private short[] idx = {
+            0, 1, 5,
+            1, 5, 2,
+            2, 5, 4,
+            2, 3, 4
+    };
 
-    public Triangle(Context context) {
+    public Rectangle(Context context) {
         mContext = context;
         //初始化顶点字节缓冲区
-
         bufferData();//缓冲顶点数据
         initProgram();//初始化OpenGL ES 程序
     }
@@ -62,18 +73,9 @@ public class Triangle {
      * 缓冲数据
      */
     private void bufferData() {
-        //分配地址空间，一个float是4个字节，所以乘4
-        ByteBuffer bb = ByteBuffer.allocateDirect(sCoo.length * 4);//每个浮点数:坐标个数* 4字节
-        bb.order(ByteOrder.nativeOrder());//使用本机硬件设备的字节顺序
-        vertexBuffer = bb.asFloatBuffer();// 从字节缓冲区创建浮点缓冲区
-        vertexBuffer.put(sCoo);// 将坐标添加到FloatBuffer
-        vertexBuffer.position(0);//设置缓冲区以读取第一个坐标
-
-        ByteBuffer cbb = ByteBuffer.allocateDirect(colors.length * 4);
-        cbb.order(ByteOrder.nativeOrder());
-        mColorBuffer = cbb.asFloatBuffer();
-        mColorBuffer.put(colors);
-        mColorBuffer.position(0);
+        vertexBuffer = GLUtil.getFloatBuffer(sCoo);
+        mColorBuffer = GLUtil.getFloatBuffer(colors);
+        idxBuffer = GLUtil.getShortBuffer(idx);
     }
 
 
@@ -137,7 +139,8 @@ public class Triangle {
 //        GLES20.glUniform4fv(mColorHandle, 1, color, 0);
 
         //绘制三角形
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, vertexCount);
+//        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, vertexCount);
+        GLES20.glDrawElements(GLES20.GL_TRIANGLES, idx.length, GLES20.GL_UNSIGNED_SHORT, idxBuffer);
 
         //禁用顶点数组:
         //禁用index指定的通用顶点属性数组。
