@@ -83,7 +83,7 @@ public class Rectangle {
      * 初始化OpenGL ES 程序
      */
     private void initProgram() {
-        ////顶点着色
+        //顶点着色
         int vertexShader = GLUtil.loadShaderAssets(mContext,
                 GLES20.GL_VERTEX_SHADER, "tri.vert");
         //片元着色
@@ -107,8 +107,6 @@ public class Rectangle {
     public void draw(float[] mvpMatrix) {
         // 将程序添加到OpenGL ES环境中
         GLES20.glUseProgram(mProgram);
-        //对顶点进行矩阵变换
-
         //启用三角形顶点的句柄
         GLES20.glEnableVertexAttribArray(mPositionHandle);
         //启用三角形顶点颜色的句柄
@@ -141,6 +139,7 @@ public class Rectangle {
         //绘制三角形
 //        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, vertexCount);
         GLES20.glDrawElements(GLES20.GL_TRIANGLES, idx.length, GLES20.GL_UNSIGNED_SHORT, idxBuffer);
+
 
         //禁用顶点数组:
         //禁用index指定的通用顶点属性数组。

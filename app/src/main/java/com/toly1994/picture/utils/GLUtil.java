@@ -150,7 +150,7 @@ public class GLUtil {
         return buffer;
     }
 
-
+////////////////////////纹理加载工具-----
     /**
      * 资源id 加载纹理
      * @param ctx 上下文
