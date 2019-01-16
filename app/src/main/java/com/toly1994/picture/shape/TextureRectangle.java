@@ -4,6 +4,7 @@ import android.content.Context;
 import android.opengl.GLES20;
 
 import com.toly1994.picture.utils.GLUtil;
+import com.toly1994.picture.world.abs.RendererAble;
 
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
@@ -14,9 +15,10 @@ import java.nio.ShortBuffer;
  * 邮箱：1981462002@qq.com<br/>
  * 说明：贴图测试
  */
-public class TextureRectangle {
+public class TextureRectangle extends RendererAble {
     private static final String TAG = "Triangle";
     private Context mContext;
+    private int mTId;
 
     private int mProgram;//OpenGL ES 程序
     private int mPositionHandle;//位置句柄
@@ -26,48 +28,69 @@ public class TextureRectangle {
     private FloatBuffer vertexBuffer;//顶点缓冲
     private final int vertexStride = COORDS_PER_VERTEX * 4; // 3*4=12
     static final int COORDS_PER_VERTEX = 3;//数组中每个顶点的坐标数
+    private final int vertexCount = vertexs.length / COORDS_PER_VERTEX;//顶点个数
 
-    static final int c = 1;//数组中每个顶点的坐标数
+    float s = 1f;//s纹理坐标系数
+    float t = 1f;//t纹理坐标系数
+    static final float UNIT_SIZE = 0.3f;
 
-    static float sCoo[] = {   //以逆时针顺序
-            -c, c, 0.0f, // p0
-            -c, -c, 0.0f, // p1
-            c, -c, 0.0f, // p2
-            c, c, 0.0f, //p3
+    static float vertexs[] = {   //以逆时针顺序
+
+            -1, 1, 0,
+            -1, -1, 0,
+            1, -1, 0,
+
+            1, -1, 0,
+            1, 1, 0,
+            -1, 1, 0
+
+//            //F面
+//            -1, -1, 1,
+//            1, -1, 1,
+//            1, -1, -1,
+//
+//            1, -1, -1,
+//            -1, -1, -1,
+//            -1, -1, 1,
+
     };
 
     private final float[] textureCoo = {
-            0.0f,0.0f,
-            0.0f,1.0f,
-            1.0f,0.0f,
-            1.0f,1.0f,
+            0, 0,
+            0, t,
+            s, t,
+
+            s, t,
+            s, 0,
+            0, 0
     };
 
-    static final int TEXTURE_PER_VERTEX = 2;//数组中每个顶点的坐标数
-    private final int vertexTextureStride = TEXTURE_PER_VERTEX * 4; // 4*4=16
+//    //索引数组
+//    private short[] idx = {
+//            1, 2, 3,
+//            0, 1, 3,
+//    };
 
     private ShortBuffer idxBuffer;
-    //索引数组
-    private short[] idx = {
-            1, 2, 3,
-            0, 1, 3,
-    };
     private FloatBuffer mTextureCooBuffer;
 
-    public TextureRectangle(Context context) {
+    public TextureRectangle(Context context, int tId) {
+        super(context);
         mContext = context;
+        mTId = tId;
         //初始化顶点字节缓冲区
         bufferData();//缓冲顶点数据
         initProgram();//初始化OpenGL ES 程序
     }
 
+
     /**
      * 缓冲数据
      */
     private void bufferData() {
-        vertexBuffer = GLUtil.getFloatBuffer(sCoo);
+        vertexBuffer = GLUtil.getFloatBuffer(vertexs);
         mTextureCooBuffer = GLUtil.getFloatBuffer(textureCoo);
-        idxBuffer = GLUtil.getShortBuffer(idx);
+//        idxBuffer = GLUtil.getShortBuffer(idx);
     }
 
     /**
@@ -95,7 +118,7 @@ public class TextureRectangle {
     }
 
 
-    public void draw(float[] mvpMatrix, int texId ) {
+    public void draw(float[] mvpMatrix) {
         // 将程序添加到OpenGL ES环境中
         GLES20.glUseProgram(mProgram);
         //启用三角形顶点的句柄
@@ -118,17 +141,18 @@ public class TextureRectangle {
         //准备三角顶点颜色数据
         GLES20.glVertexAttribPointer(
                 mColorHandle,
-                TEXTURE_PER_VERTEX,
+                2,
                 GLES20.GL_FLOAT,
                 false,
-                vertexTextureStride,
+                2 * 4,
                 mTextureCooBuffer);
+
         //绑定纹理
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texId);
-
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTId);
+//        GLES20.glDrawElements(GLES20.GL_TRIANGLES, idx.length, GLES20.GL_UNSIGNED_SHORT, idxBuffer);
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, vertexCount);
         //绘制
-        GLES20.glDrawElements(GLES20.GL_TRIANGLES, idx.length, GLES20.GL_UNSIGNED_SHORT, idxBuffer);
         //禁用顶点数组:
         //禁用index指定的通用顶点属性数组。
         // 默认情况下，禁用所有客户端功能，包括所有通用顶点属性数组。

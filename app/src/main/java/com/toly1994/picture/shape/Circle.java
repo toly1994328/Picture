@@ -4,9 +4,9 @@ import android.content.Context;
 import android.opengl.GLES20;
 
 import com.toly1994.picture.utils.GLUtil;
+import com.toly1994.picture.world.abs.RendererAble;
 
 import java.nio.FloatBuffer;
-import java.nio.ShortBuffer;
 
 /**
  * 作者：张风捷特烈<br/>
@@ -14,68 +14,72 @@ import java.nio.ShortBuffer;
  * 邮箱：1981462002@qq.com<br/>
  * 说明：矩形
  */
-public class Rectangle {
+public class Circle extends RendererAble {
     private static final String TAG = "Triangle";
-    private Context mContext;
-
     private int mProgram;//OpenGL ES 程序
     private int mPositionHandle;//位置句柄
     private int mColorHandle;//颜色句柄
     private int muMVPMatrixHandle;//顶点变换矩阵句柄
 
     private FloatBuffer vertexBuffer;//顶点缓冲
-    private final int vertexCount = sCoo.length / COORDS_PER_VERTEX;//顶点个数
     private final int vertexStride = COORDS_PER_VERTEX * 4; // 3*4=12
     static final int COORDS_PER_VERTEX = 3;//数组中每个顶点的坐标数
 
-    static float sCoo[] = {   //以逆时针顺序
-            -0.5f, 0.5f, 0.0f, // p0
-            -1.0f, 0.0f, 0.0f, // p1
-            -0.5f, -0.5f, 0.0f, // p2
-            0.5f, -0.5f, 0.0f, //p3
-//            1.0f, 0.0f, 0.0f, //p4
-//            0.5f, 0.5f, 0.0f, //p5
-    };
-
+    //顶点坐标个数
+    private int verticeCount;
 
     private FloatBuffer mColorBuffer;//颜色缓冲
     static final int COLOR_PER_VERTEX = 4;//数组中每个顶点的坐标数
     private final int vertexColorStride = COLOR_PER_VERTEX * 4; // 4*4=16
 
-    float colors[] = new float[]{
-            1f, 1f, 0.0f, 1.0f,//黄--3
-            0.05882353f, 0.09411765f, 0.9372549f, 1.0f,//蓝--4
-            0.19607843f, 1.0f, 0.02745098f, 1.0f,//绿--1
-            1.0f, 0.0f, 1.0f, 1.0f,//紫色--2
-//            1.0f, 1.0f, 0.0f, 1.0f,//黄色--2
-//            0.5254902f,0.05490196f,0.91764706f,1.0f//黄色--2
-    };
-    // 颜色，rgba  0.5176471,0.77254903,0.9411765,1.0
-    float color[] = {0.5176471f, 0.77254903f, 0.9411765f, 1.0f};
-
-    private ShortBuffer idxBuffer;
-    //索引数组
-    private short[] idx = {
-            0, 1, 5,
-            1, 5, 2,
-            2, 5, 4,
-            2, 3, 4
-    };
-
-    public Rectangle(Context context) {
-        mContext = context;
-        //初始化顶点字节缓冲区
-        bufferData();//缓冲顶点数据
+    public Circle(Context context) {
+        super(context);
+        initVertex(8, 0.5f, 1.0f, 360.f);
         initProgram();//初始化OpenGL ES 程序
     }
 
     /**
-     * 缓冲数据
+     * 初始化顶点坐标与颜色
+     *
+     * @param splitCount 分割点数
+     * @param r          内圆半径
+     * @param R          外圈半径
      */
-    private void bufferData() {
-        vertexBuffer = GLUtil.getFloatBuffer(sCoo);
+    public void initVertex(int splitCount, float r, float R, float deg) {
+        //顶点坐标数据的初始化
+        verticeCount = splitCount * 2 + 2;
+        float[] vertices = new float[verticeCount * 3];//坐标数据
+        float thta = deg / splitCount;
+        for (int i = 0; i < vertices.length; i += 3) {
+            int n = i / 3;
+            if (n % 2 == 0) {//偶数点--内圈
+                vertices[i] = (float) (r * Math.cos(Math.toRadians((n / 2) * thta)));//x
+                vertices[i + 1] = (float) (r * Math.sin(Math.toRadians((n / 2) * thta)));//y
+                vertices[i + 2] = 0;//z
+            } else {//奇数点--外圈
+                vertices[i] = (float) (R * Math.cos(Math.toRadians((n / 2) * thta)));//x
+                vertices[i + 1] = (float) (R * Math.sin(Math.toRadians((n / 2) * thta)));//y
+                vertices[i + 2] = 0;//z
+            }
+        }
+
+        //顶点颜色值数组，每个顶点4个色彩值RGBA
+        //橙色：0.972549f,0.5019608f,0.09411765f,1.0f
+        float colors[] = new float[verticeCount * 4];
+        for (int i = 0; i < colors.length; i += 8) {
+            colors[i + 0] = 1;
+            colors[i + 1] = 1;
+            colors[i + 2] = 1;
+            colors[i + 3] = 1;
+
+            colors[i + 4] = 0.972549f;
+            colors[i + 5] = 0.5019608f;
+            colors[i + 6] = 0.09411765f;
+            colors[i + 7] = 1.0f;
+        }
+
+        vertexBuffer = GLUtil.getFloatBuffer(vertices);
         mColorBuffer = GLUtil.getFloatBuffer(colors);
-        idxBuffer = GLUtil.getShortBuffer(idx);
     }
 
 
@@ -133,15 +137,13 @@ public class Rectangle {
                 vertexColorStride,
                 mColorBuffer);
 
-//        //为三角形设置颜色
-//        GLES20.glUniform4fv(mColorHandle, 1, color, 0);
-
-        GLES20.glLineWidth(5);
-
-        //绘制三角形
-//        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, vertexCount);
-        GLES20.glDrawElements(GLES20.GL_TRIANGLES, idx.length, GLES20.GL_UNSIGNED_SHORT, idxBuffer);
-
+//        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, verticeCount);
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, verticeCount);
+//        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_FAN, 0, verticeCount);
+//        GLES20.glDrawArrays(GLES20.GL_POINTS, 0, verticeCount);
+//        GLES20.glDrawArrays(GLES20.GL_LINES, 0, verticeCount);
+//        GLES20.glDrawArrays(GLES20.GL_LINE_STRIP, 0, verticeCount);
+//        GLES20.glDrawArrays(GLES20.GL_LINE_LOOP, 0, verticeCount);
 
         //禁用顶点数组:
         //禁用index指定的通用顶点属性数组。

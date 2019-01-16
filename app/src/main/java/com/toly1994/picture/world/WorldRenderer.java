@@ -3,7 +3,9 @@ package com.toly1994.picture.world;
 import android.content.Context;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
-import android.opengl.Matrix;
+
+import com.toly1994.picture.utils.GLState;
+import com.toly1994.picture.utils.MatrixStack;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -47,17 +49,22 @@ public class WorldRenderer implements GLSurfaceView.Renderer {
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         GLES20.glViewport(0, 0, width, height);//GL视口
-        float ratio = (float) width / height;
-        //透视投影矩阵--截锥
-        Matrix.frustumM(mProjectionMatrix, 0,
-                -ratio, ratio, -1, 1,
-                3, 9);
 
-        // 设置相机位置(视图矩阵)
-        Matrix.setLookAtM(mViewMatrix, 0,
-                -1.5f, 1.5f, -6,
+
+//        lovo=LoadUtil.loadFromFile("ch.obj", mContext.getResources(),MySurfaceView.this);
+
+        float ratio = (float) width / height;
+
+        MatrixStack.frustum(
+                -ratio, ratio, -1, 1,
+                3f, 9);
+
+        MatrixStack.lookAt(2, 2, -6,
                 0f, 0f, 0f,
                 0f, 1.0f, 0.0f);
+
+        MatrixStack.reset();
+        GLState.setEviLight(0.7f,0.7f,0.7f,1.0f);
     }
 
     public void setAxisZ(float axisZ) {
@@ -83,25 +90,32 @@ public class WorldRenderer implements GLSurfaceView.Renderer {
 
 
 
+        GLState.setLightLocation(1, 1, -1);
+//        GLState.setLightLocation(-1, 1, -1);
+
         //清除颜色缓存和深度缓存
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
+        MatrixStack.save();
+        MatrixStack.rotate(currDeg, 0, 1, 0);
+//        MatrixStack.scale(0.01f,0.01f,0.01f);
+        mWorldShape.draw(MatrixStack.peek());
+        MatrixStack.restore();
 
-        //初始化变换矩阵
-        Matrix.setRotateM(mOpMatrix, 0, currDeg, 0, 1, 0);
 
-        Matrix.translateM(mOpMatrix, 0, axisX, axisY,axisZ);
+//        MatrixStack.save();
+//        MatrixStack.translate(0, 0, 1f);
+//        MatrixStack.rotate(currDeg, -1.5f, 0, 0);
+//        mWorldShape.draw(MatrixStack.peek());
+//        MatrixStack.restore();
+//
+//        MatrixStack.save();
+//        MatrixStack.translate(1.5f, 0, 0);
+//        MatrixStack.rotate(currDeg, 0, 1, 0);
+//        MatrixStack.scale(0.5f,1,0.5f);
+//        mWorldShape.draw(MatrixStack.peek());
+//        MatrixStack.restore();
 
-        Matrix.multiplyMM(mMVPMatrix, 0,
-                mViewMatrix, 0,
-                mOpMatrix, 0);
-
-        Matrix.multiplyMM(mMVPMatrix, 0,
-                mProjectionMatrix, 0,
-                mMVPMatrix, 0);
-
-        mWorldShape.draw(mMVPMatrix);
-
-//        currDeg++;
+        currDeg++;
         if (currDeg == 360) {
             currDeg = 0;
         }

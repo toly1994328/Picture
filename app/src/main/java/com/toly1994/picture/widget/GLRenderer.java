@@ -43,7 +43,6 @@ public class GLRenderer implements GLSurfaceView.Renderer {
 
     //    Triangle mTriangle;
     Rectangle mRectangle;
-    TextureRectangle mTextureRectangle;
     Cube mCube;
 
     private int currDeg = 0;
@@ -54,9 +53,8 @@ public class GLRenderer implements GLSurfaceView.Renderer {
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         GLES20.glClearColor(0.84313726f,0.91764706f,0.9372549f,1.0f);//rgba
 //        mTriangle= new Rectangle(mContext);
-//        mRectangle = new Rectangle(mContext);
         mCube = new Cube(mContext);
-        mTextureRectangle = new TextureRectangle(mContext);
+//        mTextureRectangle = new TextureRectangle(mContext);
         textureId = GLUtil.loadTexture(mContext, R.mipmap.mian_a);//初始化纹理
     }
 

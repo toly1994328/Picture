@@ -65,7 +65,6 @@ public class World extends GLSurfaceView {
                         mRenderer.setAxisY(-fra* 3f);
                         break;
                 }
-
                 requestRender();
             }
         });
@@ -77,8 +76,8 @@ public class World extends GLSurfaceView {
         setEGLContextClientVersion(2);//设置OpenGL ES 2.0 context
         mRenderer = new WorldRenderer(getContext());
         setRenderer(mRenderer);//设置渲染器
-//        setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
-        setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+//        setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.toly1994.picture.world;
 import android.content.Context;
 import android.opengl.GLES20;
 
+import com.toly1994.picture.shape.ObjShape;
 import com.toly1994.picture.world.abs.RendererAble;
 import com.toly1994.picture.world.base.Cons;
 import com.toly1994.picture.world.base.Shape;
@@ -18,7 +19,7 @@ import java.util.List;
  * 邮箱：1981462002@qq.com<br/>
  * 说明：世界的形状
  */
-public class WorldShape extends RendererAble implements OP<Shape> {
+public class WorldShape extends RendererAble implements OP<RendererAble> {
     List<RendererAble> mRendererAbles;
 
     private float[] mVertex = new float[]{
@@ -69,7 +70,26 @@ public class WorldShape extends RendererAble implements OP<Shape> {
         Shape side = new Shape(mVertex2, mColor2, GLES20.GL_LINES);
         Shape top = ground.moveAndCreate(0, 1, 0);
         Shape bottom = ground.moveAndCreate(0, -1, 0);
-        add(coo, top, bottom, side);
+
+//        add(new MatrixRectangle(mContext));
+//        add(new Circle(mContext));
+//        add(new CircleFan(mContext));
+//        add(new Ball(mContext));
+//        add(new Ball_M(mContext));
+
+//        int tId = GLUtil.loadTexture(mContext, R.mipmap.mian_a,RepeatType.NONE);
+//        int tId = GLUtil.loadTexture(mContext, R.mipmap.mian_a,RepeatType.REPEAT_X);
+//        int tId = GLUtil.loadTexture(mContext, R.mipmap.mian_a,RepeatType.REPEAT_Y);
+//        int tId = GLUtil.loadTexture(mContext, R.mipmap.menu_bg,RepeatType.REPEAT);
+//        add(new TextureRectangle(mContext, tId));
+        add(new ObjShape(mContext));
+        add(
+                new SimpleShape(mContext, coo),
+                new SimpleShape(mContext, top),
+                new SimpleShape(mContext, bottom),
+                new SimpleShape(mContext, side));
+
+
     }
 
 
@@ -81,9 +101,9 @@ public class WorldShape extends RendererAble implements OP<Shape> {
     }
 
     @Override
-    public void add(Shape... shapes) {
-        for (Shape shape : shapes) {
-            mRendererAbles.add(new SimpleShape(mContext, shape));
+    public void add(RendererAble... rendererAbles) {
+        for (RendererAble rendererAble : rendererAbles) {
+            mRendererAbles.add(rendererAble);
         }
     }
 

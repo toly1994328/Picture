@@ -28,4 +28,5 @@ public class Cons {
             0.0f, 1.0f, 0.0f, 1.0f,//Y轴：绿色
             0.0f, 1.0f, 0.0f, 1.0f,
     };
+    public static final float UNIT_SIZE = 1.0f;
 }
