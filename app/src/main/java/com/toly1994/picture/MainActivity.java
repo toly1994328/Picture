@@ -10,7 +10,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        setContentView(new MySurfaceView(this));
-        setContentView(new World(this));
+        World view = new World(this);
+
+//        view.setShape(new MoFangShape(this));
+
+        setContentView(view);
+
     }
 }

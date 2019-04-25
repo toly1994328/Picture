@@ -233,6 +233,7 @@ public class GLUtil {
         bitmap.recycle();          //纹理加载成功后释放图片
         return textureId;
     }
+
     //-------------加载obj点集----------------
     //从obj文件中加载仅携带顶点信息的物体
     public static float[] loadPosInObj(String name, Context ctx) {
@@ -245,7 +246,15 @@ public class GLUtil {
             String temps = null;
             while ((temps = br.readLine()) != null) {
                 String[] tempsa = temps.split("[ ]+");
+//                Log.e("loadPosInObj", "loadPosInObj: " + tempsa.length);
+//                if (tempsa.length == 4) {
+//                }
+//
+//                if (tempsa.length == 3) {
+//                    Log.e("loadPosInObj", "loadPosInObj: " + tempsa[0] + "---->" + tempsa[1] + "---->" + tempsa[2]);
+//                }
                 if (tempsa[0].trim().equals("v")) {//此行为顶点坐标
+                    Log.e("loadPosInObj", "loadPosInObj: " + tempsa[0] + "---->" + tempsa[1] + "---->" + tempsa[2] + "---->" + tempsa[3]);
                     alv.add(Float.parseFloat(tempsa[1]));
                     alv.add(Float.parseFloat(tempsa[2]));
                     alv.add(Float.parseFloat(tempsa[3]));

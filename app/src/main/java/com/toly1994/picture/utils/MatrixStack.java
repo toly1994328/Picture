@@ -64,6 +64,36 @@ public class MatrixStack {
     }
 
     /**
+     * 设置沿xyz轴移动 注意:本方法和restore联合使用
+     *
+     * @param x 移动的 x 分量
+     * @param y 移动的 y 分量
+     * @param z 移动的 z 分量
+     */
+    public static void reTranslate(float[] target, float x, float y, float z) {
+        save();
+        reset();
+        Matrix.translateM(MatrixStack.getOpMatrix(), 0, target, 0,
+                x, y, z);
+    }
+
+    /**
+     * 设置沿(x,y,z)点旋转 注意:本方法和restore联合使用
+     *
+     * @param deg 角度
+     * @param x   旋转点的 x 分量
+     * @param y   旋转点的 y 分量
+     * @param z   旋转点的 z 分量
+     */
+    public static void reRotate(float[] target, float deg, float x, float y, float z) {
+        save();
+        reset();
+        Matrix.rotateM(MatrixStack.getOpMatrix(), 0, target, 0,
+                deg, x, y, z);
+    }
+
+
+    /**
      * 设置沿(x,y,z)点旋转
      *
      * @param deg 角度
